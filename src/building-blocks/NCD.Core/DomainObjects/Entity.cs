@@ -7,29 +7,29 @@ namespace NCD.Core.DomainObjects
     public abstract class Entity
     {
         public Guid Id { get; protected set; }
-        //private List<Event> _notifications;
-        //public IReadOnlyCollection<Event> Notifications => _notifications.AsReadOnly();
+        private List<Event> _events;
+        public IReadOnlyCollection<Event> Events => _events.AsReadOnly();
 
         public Entity()
         {
             Id = Guid.NewGuid();
         }
 
-        //public void AddEvent(Event eventItem)
-        //{
-        //    _notifications = _notifications ?? new List<Event>();
-        //    _notifications.Add(eventItem);
-        //}
+        public void AddEvent(Event eventItem)
+        {
+            _events = _events ?? new List<Event>();
+            _events.Add(eventItem);
+        }
 
-        //public void RemoveEvent(Event eventItem)
-        //{
-        //    _notifications?.Remove(eventItem);
-        //}
+        public void RemoveEvent(Event eventItem)
+        {
+            _events?.Remove(eventItem);
+        }
 
-        //public void ClearEvents()
-        //{
-        //    _notifications?.Clear();
-        //}
+        public void ClearEvents()
+        {
+            _events?.Clear();
+        }
 
         #region Comparisons
 

@@ -3,10 +3,10 @@ using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using NCD.Core.Mediator;
 using NCD.Customers.API.Application.Commands;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using NCD.Customers.API.Application.Events;
+using NCD.Customers.API.Data;
+using NCD.Customers.API.Data.Repository;
+using NCD.Customers.API.Model;
 
 namespace NCD.Customers.API.Configuration
 {
@@ -16,6 +16,11 @@ namespace NCD.Customers.API.Configuration
         {
             services.AddScoped<IMediatorHandler, MediatorHandler>();
             services.AddScoped<IRequestHandler<CustomerRegisterCommand, ValidationResult>, CustomerCommandHandler>();
+
+            services.AddScoped<INotificationHandler<RegisteredCustomerEvent>, CustomerEventHandler>();
+
+            services.AddScoped<ICustomerRepository, CustomerRepository>();
+            services.AddScoped<CustomerDbContext>();
         }
     }
 }

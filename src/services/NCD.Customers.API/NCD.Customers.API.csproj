@@ -16,9 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Application\Events\" />
     <Folder Include="Application\Queries\" />
-    <Folder Include="Data\Repository\" />
     <Folder Include="Migrations\" />
   </ItemGroup>
 

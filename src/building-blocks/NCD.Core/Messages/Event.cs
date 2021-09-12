@@ -1,18 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using MediatR;
+using System;
 
 namespace NCD.Core.Messages
 {
-    public class Event : Message//, INotification
+    public class Event : Message, INotification
     {
-        //public DateTime Timestamp { get; private set; }
+        public DateTime Timestamp { get; private set; }
 
-        //protected Event()
-        //{
-        //    Timestamp = DateTime.Now;
-        //}
+        protected Event()
+        {
+            Timestamp = DateTime.Now;
+        }
     }
 }
