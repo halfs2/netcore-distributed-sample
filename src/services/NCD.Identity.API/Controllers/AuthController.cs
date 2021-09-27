@@ -1,7 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using NCD.Core.Messages.Integration;
 using NCD.Identity.API.DTO;
+using NCD.MessageBus;
+using System;
 using System.Threading.Tasks;
 
 namespace NCD.Identity.API.Controllers
@@ -9,18 +12,21 @@ namespace NCD.Identity.API.Controllers
     [Route("api/identity")]
     public class IdentityController : Controller
     {
-        public readonly SignInManager<IdentityUser> SignInManager;
-        public readonly UserManager<IdentityUser> UserManager;
+        public readonly SignInManager<IdentityUser> _signInManager;
+        public readonly UserManager<IdentityUser> _userManager;
+        private readonly IMessageBus _messageBus;
 
         public IdentityController(SignInManager<IdentityUser> signInManager,
-            UserManager<IdentityUser> userManager)
+            UserManager<IdentityUser> userManager,
+            IMessageBus messageBus)
         {
-            SignInManager = signInManager;
-            UserManager = userManager;
+            _signInManager = signInManager;
+            _userManager = userManager;
+            _messageBus = messageBus;
         }
 
         [HttpPost("new-user")]
-        public async Task<ActionResult> Registrar(NewUserDTO newUser)
+        public async Task<ActionResult> Register([FromBody]NewUserDTO newUser)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
@@ -31,9 +37,20 @@ namespace NCD.Identity.API.Controllers
                 EmailConfirmed = true
             };
 
-            var result = await UserManager.CreateAsync(user, newUser.Password);
+            var result = await _userManager.CreateAsync(user, newUser.Password);
 
-            if(result.Succeeded) return Ok("Created");
+            if (result.Succeeded)
+            {
+                var customerResult = await RegisterCustomer(newUser);
+
+                if (!customerResult.ValidationResult.IsValid)
+                {
+                    await DeleteUser(user);
+                    return BadRequest(customerResult.ValidationResult.Errors);
+                }
+
+                return Ok("Created");
+            }
 
             return BadRequest(result.Errors);
         }
@@ -43,7 +60,7 @@ namespace NCD.Identity.API.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var result = await SignInManager
+            var result = await _signInManager
                                .PasswordSignInAsync(login.Email, 
                                                     login.Password,
                                                     false, 
@@ -60,6 +77,33 @@ namespace NCD.Identity.API.Controllers
             }
             
             return BadRequest("other errors");
+        }
+
+        private async Task<ResponseMessage> RegisterCustomer(NewUserDTO newUser)
+        {
+            var user = await _userManager.FindByEmailAsync(newUser.Email);
+
+            var registeredUser = new RegisteredUserIntegrationEvent(
+                                               id: Guid.Parse(user.Id),
+                                               name: newUser.Name,
+                                               email: newUser.Email,
+                                               document: newUser.Document);
+            try
+            {
+                return await _messageBus.RequestAsync<RegisteredUserIntegrationEvent, ResponseMessage>(registeredUser);
+            }
+            catch
+            {
+                await DeleteUser(user);
+                throw;
+            }
+        }
+
+        private async Task DeleteUser(IdentityUser user)
+        {
+            await _userManager.DeleteAsync(user);
+            var userdeletedEvent = new UserDeletedIntegrationEvent(Guid.Parse(user.Id));
+            await _messageBus.PublishAsync(userdeletedEvent);
         }
     }
 }

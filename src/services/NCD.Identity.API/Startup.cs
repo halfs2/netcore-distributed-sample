@@ -19,7 +19,8 @@ namespace NCD.Identity.API
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddIdentityConfiguration(Configuration);
-            services.AddApiConfiguration();   
+            services.AddApiConfiguration();
+            services.AddMessageBusConfiguration(Configuration);
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

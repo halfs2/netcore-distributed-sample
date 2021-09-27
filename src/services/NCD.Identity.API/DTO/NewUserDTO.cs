@@ -9,6 +9,12 @@ namespace NCD.Identity.API.DTO
         public string Email { get; set; }
 
         [Required]
+        public string Name { get; set; }
+
+        [Required]
+        public string Document { get; set; }
+
+        [Required]
         [StringLength(100, MinimumLength = 6)]
         public string Password { get; set; }
 

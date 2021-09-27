@@ -9,5 +9,6 @@ namespace NCD.Customers.API.Model
     public interface ICustomerRepository : IRepository<Customer>
     {
         void Add(Customer customer);
+        void Remove(Guid id);
     }
 }

@@ -11,6 +11,7 @@ namespace NCD.Customers.API.Application.Events
     {
         public Task Handle(RegisteredCustomerEvent notification, CancellationToken cancellationToken)
         {
+            Console.WriteLine("Send email...");
             return Task.CompletedTask;
         }
     }

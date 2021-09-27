@@ -8,7 +8,9 @@ using System.Threading.Tasks;
 
 namespace NCD.Customers.API.Application.Commands
 {
-    public class CustomerCommandHandler : CommandHandler, IRequestHandler<CustomerRegisterCommand, ValidationResult>
+    public class CustomerCommandHandler : CommandHandler, 
+                IRequestHandler<RegisterCustomerCommand, ValidationResult>,
+                IRequestHandler<DeleteCustomerCommand, ValidationResult>
     {
         private readonly ICustomerRepository _repository;
         public CustomerCommandHandler(ICustomerRepository repository)
@@ -16,7 +18,7 @@ namespace NCD.Customers.API.Application.Commands
             _repository = repository;
         }
 
-        public async Task<ValidationResult> Handle(CustomerRegisterCommand message, CancellationToken cancellationToken)
+        public async Task<ValidationResult> Handle(RegisterCustomerCommand message, CancellationToken cancellationToken)
         {
             if (!message.IsValid()) return message.ValidationResult;
 
@@ -28,9 +30,23 @@ namespace NCD.Customers.API.Application.Commands
                 return ValidationResult;
             }
 
+            if (await _repository.Exists(c => c.Email.EmailAddress == customer.Email.EmailAddress))
+            {
+                AddError("Already exist a customer with this email");
+                return ValidationResult;
+            }
+
             _repository.Add(customer);
 
+            // Add event
             customer.AddEvent(new RegisteredCustomerEvent(message.Id, message.Name, message.Email, message.Document));
+
+            return await PersistData(_repository.UnitOfWork);
+        }
+
+        public async Task<ValidationResult> Handle(DeleteCustomerCommand message, CancellationToken cancellationToken)
+        {
+            _repository.Remove(message.Id);
 
             return await PersistData(_repository.UnitOfWork);
         }

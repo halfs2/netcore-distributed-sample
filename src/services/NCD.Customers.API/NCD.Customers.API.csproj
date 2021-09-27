@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\building-blocks\NCD.Core\NCD.Core.csproj" />
+    <ProjectReference Include="..\..\building-blocks\NCD.MessageBus\NCD.MessageBus.csproj" />
   </ItemGroup>
 
   <ItemGroup>

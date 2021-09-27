@@ -5,14 +5,14 @@ using System;
 
 namespace NCD.Customers.API.Application.Commands
 {
-    public class CustomerRegisterCommand : Command
+    public class RegisterCustomerCommand : Command
     {
         public Guid Id { get; private set; }
         public string Name { get; private set; }
         public string Email { get; private set; }
         public string Document { get; private set; }
 
-        public CustomerRegisterCommand(Guid id, string name, string email, string document)
+        public RegisterCustomerCommand(Guid id, string name, string email, string document)
         {
             AggregateId = id;
             Id = id;
@@ -28,7 +28,7 @@ namespace NCD.Customers.API.Application.Commands
         }
     }
 
-    public class CustomerRegisterValidation : AbstractValidator<CustomerRegisterCommand>
+    public class CustomerRegisterValidation : AbstractValidator<RegisterCustomerCommand>
     {
         public CustomerRegisterValidation()
         {
@@ -42,11 +42,11 @@ namespace NCD.Customers.API.Application.Commands
                 .NotEmpty();
 
             RuleFor(c => c.Email)
-                .Must(TerEmailValido)
+                .Must(HaveValidEmail)
                 .WithMessage("The email is not valid");
         }
 
-        protected static bool TerEmailValido(string email)
+        protected static bool HaveValidEmail(string email)
         {
             return Email.IsValid(email);
         }

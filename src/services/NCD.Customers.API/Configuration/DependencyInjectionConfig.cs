@@ -7,6 +7,7 @@ using NCD.Customers.API.Application.Events;
 using NCD.Customers.API.Data;
 using NCD.Customers.API.Data.Repository;
 using NCD.Customers.API.Model;
+using NCD.Customers.API.Services;
 
 namespace NCD.Customers.API.Configuration
 {
@@ -15,7 +16,7 @@ namespace NCD.Customers.API.Configuration
         public static void RegisterServices(this IServiceCollection services)
         {
             services.AddScoped<IMediatorHandler, MediatorHandler>();
-            services.AddScoped<IRequestHandler<CustomerRegisterCommand, ValidationResult>, CustomerCommandHandler>();
+            services.AddScoped<IRequestHandler<RegisterCustomerCommand, ValidationResult>, CustomerCommandHandler>();
 
             services.AddScoped<INotificationHandler<RegisteredCustomerEvent>, CustomerEventHandler>();
 

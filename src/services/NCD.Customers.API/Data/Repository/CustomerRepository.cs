@@ -26,11 +26,20 @@ namespace NCD.Customers.API.Data.Repository
             _context.Customers.Add(customer);
         }
 
+        public void Remove(Guid id)
+        {
+            var customer = _context.Customers.Find(id);
+            if (customer == null)
+                return;
 
+            _context.Customers.Remove(customer);
+        }
 
         public void Dispose()
         {
             _context.Dispose();
         }
+
+       
     }
 }

@@ -21,7 +21,7 @@ namespace NCD.Customers.API.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CustomerRegisterDTO dto)
         {
-            var result = await _mediatorHandler.SendCommand(new CustomerRegisterCommand(dto.Id, dto.Name, dto.Email, dto.Document));
+            var result = await _mediatorHandler.SendCommand(new RegisterCustomerCommand(dto.Id, dto.Name, dto.Email, dto.Document));
 
             if (result.IsValid)
                 return Created("Customer", dto);
