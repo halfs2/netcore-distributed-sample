@@ -3,9 +3,6 @@ using NCD.Core.Messages.Integration;
 using Polly;
 using RabbitMQ.Client.Exceptions;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace NCD.MessageBus
@@ -17,8 +14,6 @@ namespace NCD.MessageBus
         private readonly string _connectionString;
 
         public bool IsConnected => _bus?.Advanced.IsConnected ?? false;
-
-        public IAdvancedBus AdvancedBus => throw new NotImplementedException();
 
         public MessageBus(string connectionstring)
         {

@@ -3,6 +3,9 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
+using NCD.Core.Identity;
+using NCD.Identity.API.Services;
+using NetDevPack.Security.Jwt.AspNetCore;
 
 namespace NCD.Identity.API.Configuration
 {
@@ -17,7 +20,7 @@ namespace NCD.Identity.API.Configuration
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "NCD.Identity.API", Version = "v1" });
             });
 
-            //services.AddScoped<AuthenticationService>();
+            services.AddScoped<AuthenticationService>();
             //services.AddScoped<IAspNetUser, AspNetUser>();
 
             return services;
@@ -34,12 +37,14 @@ namespace NCD.Identity.API.Configuration
 
             app.UseRouting();
 
-            app.UseAuthorization();
+            app.UseAuthConfiguration();
 
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
             });
+
+            app.UseJwksDiscovery();
 
             return app;
         }

@@ -1,8 +1,8 @@
-﻿using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using NCD.Core.Messages.Integration;
 using NCD.Identity.API.DTO;
+using NCD.Identity.API.Services;
 using NCD.MessageBus;
 using System;
 using System.Threading.Tasks;
@@ -12,17 +12,15 @@ namespace NCD.Identity.API.Controllers
     [Route("api/identity")]
     public class IdentityController : Controller
     {
-        public readonly SignInManager<IdentityUser> _signInManager;
-        public readonly UserManager<IdentityUser> _userManager;
         private readonly IMessageBus _messageBus;
+        private readonly AuthenticationService _authenticationService;
 
-        public IdentityController(SignInManager<IdentityUser> signInManager,
-            UserManager<IdentityUser> userManager,
+        public IdentityController(
+            AuthenticationService authenticationService,
             IMessageBus messageBus)
         {
-            _signInManager = signInManager;
-            _userManager = userManager;
             _messageBus = messageBus;
+            _authenticationService = authenticationService;
         }
 
         [HttpPost("new-user")]
@@ -37,7 +35,7 @@ namespace NCD.Identity.API.Controllers
                 EmailConfirmed = true
             };
 
-            var result = await _userManager.CreateAsync(user, newUser.Password);
+            var result = await _authenticationService.UserManager.CreateAsync(user, newUser.Password);
 
             if (result.Succeeded)
             {
@@ -60,7 +58,7 @@ namespace NCD.Identity.API.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var result = await _signInManager
+            var result = await _authenticationService.SignInManager
                                .PasswordSignInAsync(login.Email, 
                                                     login.Password,
                                                     false, 
@@ -68,7 +66,7 @@ namespace NCD.Identity.API.Controllers
 
             if (result.Succeeded)
             {
-                return Ok("user is valid");
+                return Ok(await _authenticationService.GenerateJwt(login.Email));
             }
 
             if (result.IsLockedOut)
@@ -78,10 +76,22 @@ namespace NCD.Identity.API.Controllers
             
             return BadRequest("other errors");
         }
+        
+        [HttpPost("refresh-token")]
+        public async Task<ActionResult> RefreshToken([FromBody] string refreshToken)
+        {
+            if (string.IsNullOrEmpty(refreshToken)) return BadRequest("Invalid Refresh token");
+           
+            var token = await _authenticationService.GetRefreshToken(Guid.Parse(refreshToken));
+
+            if (token is null) return BadRequest("Refresh token expired");
+            
+            return Ok(await _authenticationService.GenerateJwt(token.Username));
+        }
 
         private async Task<ResponseMessage> RegisterCustomer(NewUserDTO newUser)
         {
-            var user = await _userManager.FindByEmailAsync(newUser.Email);
+            var user = await _authenticationService.UserManager.FindByEmailAsync(newUser.Email);
 
             var registeredUser = new RegisteredUserIntegrationEvent(
                                                id: Guid.Parse(user.Id),
@@ -101,7 +111,7 @@ namespace NCD.Identity.API.Controllers
 
         private async Task DeleteUser(IdentityUser user)
         {
-            await _userManager.DeleteAsync(user);
+            await _authenticationService.UserManager.DeleteAsync(user);
             var userdeletedEvent = new UserDeletedIntegrationEvent(Guid.Parse(user.Id));
             await _messageBus.PublishAsync(userdeletedEvent);
         }

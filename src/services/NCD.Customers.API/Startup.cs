@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using NCD.Core.Identity;
 using NCD.Customers.API.Configuration;
 
 namespace NCD.Customers.API
@@ -18,6 +19,8 @@ namespace NCD.Customers.API
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddApiConfiguration(Configuration);
+
+            services.AddJwtConfiguration(Configuration);
 
             services.AddMediatR(typeof(Startup));
 
